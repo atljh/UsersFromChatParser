@@ -1,15 +1,18 @@
 import sys
 import json
-import random
 import requests
 import datetime
 import subprocess
+from pathlib import Path
 
 from telethon import TelegramClient
 from telethon.tl.types import ChannelParticipantsSearch
 from telethon.tl.functions.channels import GetParticipantsRequest
 
 from console import console
+from basethon.base_thon import BaseThon
+from basethon.json_converter import JsonConverter
+
 
 def get_settings():
     try:
@@ -104,15 +107,11 @@ try:
     # register_user()
 
     f = open('data.txt', 'a+')
-    apis = open('apis.txt').read().split('\n')
-    phone = input('Введите номер телефона: ')
     groups = set(open('groups.txt', encoding='utf-8').read().split('\n'))
-    api = random.choice(apis).split(' ')
-    api_id = int(api[0])
-    api_hash = api[1]
+
     active = select_status()
     datas_ = []
-    client = TelegramClient(phone, api_id, api_hash)
+    client = TelegramClient(phone)
     client.start(phone=phone)
     now = datetime.datetime.now()
     day = int(now.day)
@@ -169,3 +168,39 @@ try:
 except Exception as e:
     console.log(f"Произошла критическая ошибка: {e}")
     input("Для завершения работы нажмите Enter")
+
+
+def load_session():
+    session_file = 'session.session'
+    json_file = 'session.json'
+
+    basethon_session = Path(session_file)
+    if not basethon_session.exists():
+        console.log("Файл session.session не найден.", style='yellow')
+        sys.exit(1)
+        return
+    sessions_count = JsonConverter().main()
+    if not sessions_count:
+        console.log("Нет аккаунтов в папке с сессиями!", style="yellow")
+        sys.exit(1)
+        return
+    try:
+        with open(json_file, "r", encoding="utf-8") as f:
+            json_data = json.load(f)
+    except FileNotFoundError:
+        console.log(f"Файл {json_file} не найден!", style="red")
+        sys.exit(1)
+        return        
+    except json.JSONDecodeError:
+        console.log(f"Ошибка чтения {json_file}! Убедитесь, что файл содержит корректный JSON.", style="red")
+        sys.exit(1)
+        return
+    return session_file, json_data
+
+async def main():
+
+    try:
+        telegram_search = TelegramSearch(session_file, json_data, config)
+        await telegram_search.main(config)
+    except Exception as e:
+        console.log(f"Ошибка запуска: {e}", style="red")
