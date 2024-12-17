@@ -165,6 +165,14 @@ class Parser(BaseThon):
             return
         await self.start_parse()
 
+def get_groups():
+    try:
+        groups = set(Path("groups.txt").read_text(encoding="utf-8").splitlines())
+    except FileNotFoundError:
+        console.log("Файл groups.txt не найден", style="red")
+        sys.exit(1)
+    return groups
+
 def load_session():
     session_file = 'session.session'
     json_file = 'session.json'
@@ -188,8 +196,7 @@ def load_session():
 
 async def main():
     session_file, json_data = load_session()
-    groups = set(Path("groups.txt").read_text(encoding="utf-8").splitlines())
-    parser = Parser(session_file, json_data, groups)
+    parser = Parser(session_file, json_data, get_groups())
     await parser._main()
 
 if __name__ == "__main__":
