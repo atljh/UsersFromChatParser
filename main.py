@@ -1,17 +1,18 @@
 import sys
 import json
+import asyncio
 import requests
 import datetime
 import subprocess
 from pathlib import Path
 
-from telethon import TelegramClient
 from telethon.tl.types import ChannelParticipantsSearch
 from telethon.tl.functions.channels import GetParticipantsRequest
 
 from console import console
 from basethon.base_thon import BaseThon
 from basethon.json_converter import JsonConverter
+
 def get_settings():
     try:
         with open("settings.json", "r") as f:
@@ -23,8 +24,6 @@ def get_settings():
 def set_settings(data):
     with open("settings.json", "w") as f:
         f.write(json.dumps(data))
-
-settings = get_settings()
 
 def register_user():
     print("Связываемся с сервером...")
@@ -79,6 +78,10 @@ def register_user():
             console.log(f"Error verifying access key: {e}")
             print("Ошибка связи с сервером. Повторите попытку.")
 
+settings = get_settings()
+
+#register_user()
+
 class Parser(BaseThon):
     def __init__(self, item: str, json_data: dict, channels):
         super().__init__(item, json_data)
@@ -94,9 +97,17 @@ class Parser(BaseThon):
             "5": "week",
             "6": "month",
         }
-        print("Выберите статус пользователей для парсинга:")
+        status_names = {
+            "all": "Все",
+            "online": "Онлайн",
+            "recently": "Недавно",
+            "yesterday": "Вчера",
+            "week": "За неделю",
+            "month": "За месяц",
+        }
+        console.log("Выберите статус пользователей для парсинга:")
         for key, value in statuses.items():
-            print(f"{key}. {value.capitalize()}")
+            print(f"{key}. {status_names[value]}")
         choice = input("Введите номер: ")
         return statuses.get(choice, "all")
 
@@ -186,5 +197,4 @@ async def main():
     await parser._main()
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
