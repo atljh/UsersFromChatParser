@@ -118,7 +118,11 @@ class Parser(BaseThon):
                 all_participants.extend(participants.users)
                 offset_user += len(participants.users)
         except Exception as e:
-            console.log(f"Ошибка при получении участников группы {channel}: {e}", style="red")
+            if "Cannot find any entity corresponding" in str(e):
+                console.log(f"Неверный формат группы {channel}, пропускаем", style="red")
+                return
+            else:
+                console.log(f"Ошибка при получении участников группы {channel}: {e}", style="red")
 
         now = datetime.datetime.now()
         day = int(now.day)
