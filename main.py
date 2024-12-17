@@ -1,27 +1,22 @@
-import datetime
+import sys
 import json
 import random
-import os
-import subprocess
 import requests
-import sys
-import logging
+import datetime
+import subprocess
 
-from telethon.errors import SessionPasswordNeededError
-from telethon.tl import functions
-from telethon.tl.functions.channels import JoinChannelRequest, GetParticipantsRequest
-from telethon.tl.functions.messages import ImportChatInviteRequest
-from telethon.tl.types import ChannelParticipantsSearch, PeerChat
 from telethon import TelegramClient
+from telethon.tl.types import ChannelParticipantsSearch
+from telethon.tl.functions.channels import GetParticipantsRequest
 
-logging.basicConfig(filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+from console import console
 
 def get_settings():
     try:
         with open("settings.json", "r") as f:
             return json.loads(f.read())
     except FileNotFoundError:
-        logging.error("settings.json file not found")
+        console.log("settings.json file not found")
         return {}
 
 def set_settings(data):
@@ -39,7 +34,7 @@ def register_user():
             .strip()
         )
     except Exception as e:
-        logging.error(f"Error fetching machine ID: {e}")
+        console.log(f"Error fetching machine ID: {e}")
         sys.exit("Не удалось получить ID машины.")
 
     admin_username = settings.get("ADMIN_USERNAME")
@@ -52,10 +47,10 @@ def register_user():
         )
         db_id = db_id.json()
         if db_id.get("message"):
-            logging.error("Invalid admin username")
+            console.log("Invalid admin username")
             sys.exit("Неправильный логин")
     except requests.RequestException as e:
-        logging.error(f"Error contacting API: {e}")
+        console.log(f"Error contacting API: {e}")
         sys.exit("Ошибка связи с сервером.")
 
     file_key = settings.get("ACCESS_KEY")
@@ -79,7 +74,7 @@ def register_user():
                 print("Неправильный ключ!")
                 key = input("Введите ваш ключ доступа: ")
         except requests.RequestException as e:
-            logging.error(f"Error verifying access key: {e}")
+            console.log(f"Error verifying access key: {e}")
             print("Ошибка связи с сервером. Повторите попытку.")
 
 def select_status():
@@ -136,7 +131,7 @@ try:
                 all_participants.extend(participants.users)
                 offset_user += len(participants.users)
         except Exception as e:
-            logging.error(f"Error fetching participants for {channel}: {e}")
+            console.log(f"Error fetching participants for {channel}: {e}")
 
         for participant in all_participants:
             try:
@@ -155,7 +150,7 @@ try:
                 elif active == 'month' and 'UserStatusLastMonth' in str(participant.status):
                     datas_.append(participant.username)
             except Exception as e:
-                logging.warning(f"Error processing participant {participant.id}: {e}")
+                console.log(f"Error processing participant {participant.id}: {e}")
 
     for channel in groups:
         print(f'Парсинг {channel}')
@@ -163,15 +158,14 @@ try:
             with client:
                 client.loop.run_until_complete(parse_channel(client, channel))
         except Exception as e:
-            logging.error(f"Error parsing channel {channel}: {e}")
+            console.log(f"Error parsing channel {channel}: {e}")
 
     datas = set(datas_)
     with open('data.txt', 'a+') as file:
         for data in datas:
             file.write(f'{data}\n')
-    print('Готово!')
-    logging.info('Парсинг завершен успешно')
+    console.log('Парсинг завершен успешно')
 
 except Exception as e:
-    logging.critical(f"Произошла критическая ошибка: {e}")
+    console.log(f"Произошла критическая ошибка: {e}")
     input("Для завершения работы нажмите Enter")
