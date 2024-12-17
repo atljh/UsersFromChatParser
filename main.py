@@ -90,27 +90,20 @@ class Parser(BaseThon):
 
     def select_status(self):
         statuses = {
-            "1": "all",
-            "2": "online",
-            "3": "recently",
-            "4": "yesterday",
-            "5": "week",
-            "6": "month",
+            "1": ("all", "Все"),
+            "2": ("online", "Онлайн"),
+            "3": ("recently", "Недавно"),
+            "4": ("yesterday", "Вчера"),
+            "5": ("week", "За неделю"),
+            "6": ("month", "За месяц"),
         }
-        status_names = {
-            "all": "Все",
-            "online": "Онлайн",
-            "recently": "Недавно",
-            "yesterday": "Вчера",
-            "week": "За неделю",
-            "month": "За месяц",
-        }
-        console.log("Выберите статус пользователей для парсинга:")
+        print("Выберите статус пользователей для парсинга:")
         for key, value in statuses.items():
-            print(f"{key}. {status_names[value]}")
+            print(f"{key}. {value[1]}")
         choice = input("Введите номер: ")
-        return statuses.get(choice, "all")
-
+        result = statuses.get(choice, "all")[0]
+        return result
+    
     async def parse_channel(self, channel, active):
         offset_user = 0
         limit_user = 100
