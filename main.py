@@ -118,7 +118,7 @@ class Parser(BaseThon):
                 all_participants.extend(participants.users)
                 offset_user += len(participants.users)
         except Exception as e:
-            console.log(f"Error fetching participants for {channel}: {e}")
+            console.log(f"Ошибка при получении участников группы {channel}: {e}", style="red")
 
         now = datetime.datetime.now()
         day = int(now.day)
@@ -142,25 +142,24 @@ class Parser(BaseThon):
             except Exception as e:
                 console.log(f"Error processing participant {participant.id}: {e}")
 
-    async def parse_all(self):
+    async def start_parse(self):
         active = self.select_status()
         for channel in self.channels:
-            print(f'Парсинг {channel}')
+            console.log(f'Парсинг {channel}')
             await self.parse_channel(channel, active)
 
         datas = set(self.datas_)
         with open('data.txt', 'a+') as file:
             for data in datas:
                 file.write(f'{data}\n')
-        console.log('Парсинг завершен успешно')
+        console.log('Парсинг завершен успешно', style="green")
 
     async def _main(self):
         r = await self.check()
         if "OK" not in r:
             console.log("Аккаунт разлогинен или забанен", style="red")
             return
-        await self.parse_all()
-
+        await self.start_parse()
 
 def load_session():
     session_file = 'session.session'
